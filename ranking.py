@@ -8,8 +8,9 @@ class SearchEngine:
 
     def __init__(self):
         self.vectorizer = TfidfVectorizer(
+            analyzer="char",
             max_features=5000,
-            ngram_range=(1,2),
+            ngram_range=(2,4),
             min_df=1,
             max_df=0.95,
             sublinear_tf=True
@@ -49,7 +50,6 @@ class SearchEngine:
 
         query_vec = self.vectorizer.transform([query])
         similarities = cosine_similarity(query_vec, self.tfidf_matrix)[0]
-
         results = []
         for idx, base_score in enumerate(similarities):
             if base_score > 0.01:
