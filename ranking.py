@@ -17,7 +17,7 @@ class SearchEngine:
         self.tfidf_matrix = None
         self.pages = []
         self.is_fitted = False
-    
+
     def build_index(self, pages: list):
         if not pages:
             return
@@ -30,7 +30,7 @@ class SearchEngine:
                 kw_list = [k.strip() for k in kw.split(",") if k.strip()]
             else:
                 kw_list = kw
-            
+
             text = "".join([
                 (p.get("title", "") + " ") * 3,
                 (p.get("description", "") + " ") * 2,
@@ -38,15 +38,15 @@ class SearchEngine:
                 (" ".join(kw_list) + " ") * 2,
             ])
             corpus.append(text)
-        
+
         self.tfidf_matrix = self.vectorizer.fit_transform(corpus)
         self.is_fitted = True
         print(f"インデックス構築完了： {len(pages)}ページ")
-    
+
     def search(self, query: str, top_n: int=20) -> list:
         if not self.is_fitted or not query.strip():
             return []
-        
+
         query_vec = self.vectorizer.transform([query])
         similarities = cosine_similarity(query_vec, self.tfidf_matrix)[0]
 
@@ -60,12 +60,12 @@ class SearchEngine:
                 page["relevance_score"] = round(float(final_score) * 100, 1)
                 page["base_score"] = round(float(base_score) * 100, 1)
                 results.append(page)
-        
+
         results.sort(key=lambda x: x["relevance_score"], reverse=True)
         return results[:top_n]
-    
+
     def _calculate_final_score(self, page: dict, base_score: float, query:str) -> float:
-        
+
         score = base_score
         query_lower = query.lower()
 
@@ -74,8 +74,8 @@ class SearchEngine:
             score *= 1.8
         elif query_lower in title:
             score *= 1.4
-        
-        keywords = page.get("keywords", [])
+
+        keywords = page.get("keywords") or []
 
         if isinstance(keywords, str):
             keywords = keywords.split(",")
@@ -83,7 +83,7 @@ class SearchEngine:
 
         if query_lower in keywords_lower:
             score *= 1.3
-        
+
         crawled_at = page.get("crawled_at", "")
         if crawled_at:
             try:
@@ -94,13 +94,13 @@ class SearchEngine:
                     score *= recency_bonus
             except Exception:
                 pass
-        
+
         word_count = page.get("word_count", 0)
         if word_count < 50:
             score *= 0.7
         elif word_count > 10000:
             score *= 0.85
-        
+
         return score
 
 _engine = None
