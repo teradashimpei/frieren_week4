@@ -38,10 +38,10 @@ class SearchEngine:
                 (" ".join(kw_list) + " ") * 2,
             ])
             corpus.append(text)
-
-        self.tfidf_matrix = self.vectorizer.fit_transform(corpus)
-        self.is_fitted = True
-        print(f"インデックス構築完了： {len(pages)}ページ")
+        if len(corpus) > 1:
+            self.tfidf_matrix = self.vectorizer.fit_transform(corpus)
+            self.is_fitted = True
+            print(f"インデックス構築完了： {len(pages)}ページ")
 
     def search(self, query: str, top_n: int=20) -> list:
         if not self.is_fitted or not query.strip():
